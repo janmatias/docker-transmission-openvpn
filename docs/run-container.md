@@ -60,6 +60,31 @@ services:
 These configs are equivalent. Running `docker-compose up` with that compose file will result in
 the same options being sent to the Docker engine as the run statement before it.
 
+## Docker secrets
+
+There is support for Docker secrets for openvpn credentials and transmission RPC credentials.
+
+#### OpenVPN credentials
+
+To use a docker secret for vpn credentials, do NOT set the env variables OPENVPN_USERNAME and OPENVPN_PASSWORD as they will have priority if either of them are detected.
+
+You need to add a secret named "openvpn-user-pass" of the format:
+```
+username
+password
+```
+
+#### Transmission RPC credentials
+
+To use a docker secret for RPV credentials, do NOT set the env variable TRANSMISSION_RPC_USERNAME as it will have priority if it is detected.
+
+You need to add a secret named "transmission-rpc-user-pass" of the format:
+```
+username
+password
+```
+
+
 ## Three things to remember
 
 #### 1. The container assumes that you mount a folder to /data
