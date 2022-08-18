@@ -149,11 +149,16 @@ fi
 
 # add OpenVPN user/pass
 if [[ "${OPENVPN_USERNAME}" == "**None**" ]] || [[ "${OPENVPN_PASSWORD}" == "**None**" ]] ; then
-  if [[ ! -f /config/openvpn-credentials.txt ]] ; then
+  if [[ -f /var/run/secrets/openvpn-user-pass ]] ; then
+    echo "Found OpenVPN credentials in Docker secrets."
+    cp /var/run/secrets/openvpn-user-pass /config/openvpn-credentials.txt
+    chmod 600 /config/openvpn-credentials.txt
+  elif [[ -f /config/openvpn-credentials.txt ]] ; then
+    echo "Found existing OPENVPN credentials at /config/openvpn-credentials.txt"
+  else
     echo "OpenVPN credentials not set. Exiting."
     exit 1
   fi
-  echo "Found existing OPENVPN credentials at /config/openvpn-credentials.txt"
 else
   echo "Setting OpenVPN credentials..."
   mkdir -p /config
@@ -162,9 +167,18 @@ else
   chmod 600 /config/openvpn-credentials.txt
 fi
 
-# add transmission credentials from env vars
-echo "${TRANSMISSION_RPC_USERNAME}" > /config/transmission-credentials.txt
-echo "${TRANSMISSION_RPC_PASSWORD}" >> /config/transmission-credentials.txt
+if [[ "${TRANSMISSION_RPC_USERNAME}" == "**None**" ]] ; then
+  if [[ -f /var/run/secrets/transmission-rpc-user-pass ]] ; then
+    echo "Found Transmission rpc credentials in Docker secrets."
+    cp /var/run/secrets/transmission-rpc-user-pass /config/transmission-credentials.txt
+  elif [[ -f /config/transmission-credentials.txt ]] ; then
+    echo "Found existing Transmission rpc credentials at /config/transmission-credentials.txt"
+  else
+    # add transmission credentials from env vars
+    echo "${TRANSMISSION_RPC_USERNAME}" > /config/transmission-credentials.txt
+    echo "${TRANSMISSION_RPC_PASSWORD}" >> /config/transmission-credentials.txt
+  fi
+fi
 
 # Persist transmission settings for use by transmission-daemon
 python3 /etc/openvpn/persistEnvironment.py /etc/transmission/environment-variables.sh
